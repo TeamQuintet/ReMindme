@@ -10,7 +10,7 @@ Kindly follow and refer our [blog](https://quintet-remind-me.blogspot.com/) for 
 ## TOOLS USED:
  |    |   |
 | --- | --- |
-Coding Languages    | java, android  
+Coding Languages    | Java, Android  
 Database Management | Firebase          
 Platform:           | Android studio 
 Operating System    | Windows 10 
