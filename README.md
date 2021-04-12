@@ -12,7 +12,7 @@ Kindly follow and refer our [blog](https://quintet-remind-me.blogspot.com/) for 
 | --- | --- |
 Coding Languages    | Java, Android  
 Database Management | Firebase          
-Platform:           | Android studio 
+Platform:           | Android Studio 
 Operating System    | Windows 10 
 
 ## Progress Report:
