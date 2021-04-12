@@ -11,7 +11,7 @@ Kindly follow and refer our [blog](https://quintet-remind-me.blogspot.com/) for 
  |    |   |
 | --- | --- |
 Coding Languages    | java, android  
-Database Management | MySql          
+Database Management | Firebase          
 Platform:           | Android studio 
 Operating System    | Windows 10 
 
