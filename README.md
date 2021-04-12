@@ -18,4 +18,4 @@ Operating System    | Windows 10
 ## Progress Report:
 Backlog and Minutes of Meeting(MoM) for every week will be updated [here](https://docs.google.com/document/d/1vnzFwtyGpL8GnwdyOpWm4Uz_vBjW__5AKoxBZPP4HcY/edit?usp=sharing).
 
-<img src="images/ReMind%20Me.png" width=600 height=700>
+<img src="images/ReMind%20Me.png" width=650 height=700>
