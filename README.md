@@ -18,6 +18,6 @@ Operating System    | Windows 10
 ## Progress Report:
 Backlog [here](https://github.com/DineshMedicharla/ReMindme/tree/master/Backlogs)
 
-Minutes of Meeting(MoM) for every week will be updated [here](https://github.com/DineshMedicharla/ReMindme/tree/master/Meeting_of_Minutes).
+Minutes of Meeting(MoM) for every week will be updated [here](https://github.com/TeamQuintet/ReMindme/tree/master/Minutes-of-Meeting).
 
 <img src="images/ReMind%20Me.png" width=650 height=700>
