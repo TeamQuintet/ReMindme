@@ -9,9 +9,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyReMindme">
-        <activity android:name="com.Quintet.myremindme.RegistrationActivity"></activity>
-        <activity android:name="com.Quintet.myremindme.LoginActivity" />
-        <activity android:name="com.Quintet.myremindme.MainActivity">
+        <activity android:name=".HomeActivity"></activity>
+        <activity android:name=".RegistrationActivity" />
+        <activity android:name=".LoginActivity" />
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
