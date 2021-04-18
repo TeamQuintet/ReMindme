@@ -1,4 +1,4 @@
-package com.example.myremindme;
+package com.Quintet.myremindme;
 
 import android.content.Context;
 
