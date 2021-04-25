@@ -7,10 +7,34 @@
     android:orientation="vertical"
     tools:context=".HomeActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/homeToolbar"
+        app:title="Tasks"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="HOME ACTIVITY"
-        />
+        android:background="@android:color/holo_blue_bright"
+        android:theme="@style/Theme.AppCompat.DayNight.DarkActionBar"
+        app:popupTheme="@style/Theme.AppCompat.Light"/>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:backgroundTint="@android:color/holo_blue_bright"
+            android:src="@drawable/ic_baseline_add"/>
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </LinearLayout>

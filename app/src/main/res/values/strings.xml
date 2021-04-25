@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MyReMindme</string>
+    <string name="add_a_new_task">Add a new task</string>
 </resources>
