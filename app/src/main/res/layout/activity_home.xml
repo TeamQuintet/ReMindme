@@ -9,7 +9,6 @@
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/homeToolbar"
-        app:title="Tasks"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/holo_blue_bright"
@@ -32,7 +31,8 @@
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
             android:backgroundTint="@android:color/holo_blue_bright"
-            android:src="@drawable/ic_baseline_add"/>
+            android:src="@drawable/ic_baseline_add"
+             />
 
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
