@@ -1,10 +1,13 @@
 package com.Quintet.myremindme;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,6 +25,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.Quintet.myremindme.Model.TasksModel;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -151,6 +156,14 @@ public class HomeActivity extends AppCompatActivity {
                 holder.setTask(model.getTask());
                 holder.setDesc(model.getDescription());
                 Log.i("Adapter", "onbindviewholder");
+
+                holder.view.setOnClickListener(v -> {
+                    key = getRef(position).getKey();
+                    task = model.getTask();
+                    description = model.getDescription();
+
+                    updateTask();
+                });
             }
 
             @NonNull
@@ -164,6 +177,64 @@ public class HomeActivity extends AppCompatActivity {
 
         recyclerView.setAdapter(adapter);
         adapter.startListening();
+    }
+
+    private void updateTask() {
+        AlertDialog.Builder myDialog = new AlertDialog.Builder(this);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View v = inflater.inflate(R.layout.update_task, null);
+        myDialog.setView(v);
+
+        AlertDialog dialog = myDialog.create();
+
+        EditText uTask = v.findViewById(R.id.updateTask);
+        EditText uDesc = v.findViewById(R.id.updateDescription);
+
+        uTask.setText(task);
+        uTask.setSelection(task.length());
+
+        uDesc.setText(description);
+        uDesc.setSelection(description.length());
+
+        Button delBtn = v.findViewById(R.id.deleteBtn);
+        Button updBtn = v.findViewById(R.id.updateBtn);
+
+        updBtn.setOnClickListener(view -> {
+            task = uTask.getText().toString().trim();
+            description = uDesc.getText().toString().trim();
+
+            String date = DateFormat.getDateInstance().format(new Date());
+
+            TasksModel model = new TasksModel(task, description, key, date);
+            reference.child(key).setValue(model).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+
+                    if(task.isSuccessful()){
+                        Toast.makeText(HomeActivity.this, "Task updated", Toast.LENGTH_SHORT).show();
+                    }else{
+                        String err = task.getException().toString();
+                        Toast.makeText(HomeActivity.this, "Update failed: "+err, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+            dialog.dismiss();
+        });
+
+        delBtn.setOnClickListener(view ->{
+            reference.child(key).removeValue().addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    Toast.makeText(HomeActivity.this, "Task deleted", Toast.LENGTH_SHORT).show();
+                }else{
+                    String err = task.getException().toString();
+                    Toast.makeText(HomeActivity.this, "Deletion failed: "+err, Toast.LENGTH_SHORT).show();
+                }
+            });
+            dialog.dismiss();
+        });
+
+        dialog.show();
+
     }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder{
@@ -187,5 +258,24 @@ public class HomeActivity extends AppCompatActivity {
         public void setDate(String date){
             TextView viewData = view.findViewById(R.id.viewDate);
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.logout_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.logout:
+                auth.signOut();
+                Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
