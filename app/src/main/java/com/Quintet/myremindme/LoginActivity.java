@@ -41,10 +41,10 @@ public class LoginActivity extends AppCompatActivity {
         mAuth= FirebaseAuth.getInstance();
         loader= new ProgressDialog(this);
 
-//        if(mAuth!=null){
-//            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-//            startActivity(intent);
-//        }
+        if(mAuth!=null){
+            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+            startActivity(intent);
+        }
 
         loginEmail = findViewById(R.id.loginEmail);
         loginPwd = findViewById(R.id.loginPassword);

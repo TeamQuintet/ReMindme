@@ -7,14 +7,6 @@ public class TasksModel {
     public TasksModel() {
     }
 
-    public void setTime(String time) {
-        this.time = time;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
     public TasksModel(String task, String description, String id, String date,String time) {
         this.task = task;
         this.description = description;
@@ -53,5 +45,13 @@ public class TasksModel {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 }
