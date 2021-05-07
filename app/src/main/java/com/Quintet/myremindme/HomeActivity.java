@@ -1,6 +1,8 @@
 package com.Quintet.myremindme;
 
+import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -34,7 +36,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 
 public class HomeActivity extends AppCompatActivity {
@@ -54,8 +59,11 @@ public class HomeActivity extends AppCompatActivity {
     private String key = "";
     private String task;
     private String description;
+    private EditText date;
+    private EditText time;
 
     private static final String TAG = "HomeActivity";
+    private Calendar myCalendar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +93,7 @@ public class HomeActivity extends AppCompatActivity {
         floatingActionButton.setOnClickListener(view -> addTask());
     }
 
+
     private void addTask() {
         AlertDialog.Builder myDialog = new AlertDialog.Builder(this);
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -95,8 +104,50 @@ public class HomeActivity extends AppCompatActivity {
 
         final EditText task = v.findViewById(R.id.task);
         final EditText desc = v.findViewById(R.id.description);
+        final EditText date = v.findViewById(R.id.adddate);
+        final EditText time = v.findViewById(R.id.addtime);
+
+
         Button save = v.findViewById(R.id.addSaveBtn);
         Button cancel = v.findViewById(R.id.addCancelBtn);
+
+        myCalendar = Calendar.getInstance();
+        DatePickerDialog.OnDateSetListener datePicker = (view, year, monthOfYear, dayOfMonth) -> {
+            // TODO Auto-generated method stub
+            myCalendar.set(Calendar.YEAR, year);
+            myCalendar.set(Calendar.MONTH, monthOfYear);
+            myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            updateLabel();
+        };
+
+
+        date.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                new DatePickerDialog(HomeActivity.this, datePicker, myCalendar
+                        .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                        myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+            }
+        });
+
+        time.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                Calendar mcurrentTime = Calendar.getInstance();
+                int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+                int minute = mcurrentTime.get(Calendar.MINUTE);
+                TimePickerDialog mTimePicker;
+                mTimePicker = new TimePickerDialog(HomeActivity.this, (timePicker, selectedHour, selectedMinute)
+                        -> time.setText( selectedHour + ":" + selectedMinute), hour, minute, true);//Yes 24 hour time
+                mTimePicker.setTitle("Select Time");
+                mTimePicker.show();
+
+            }
+        });
 
         cancel.setOnClickListener((view) -> dialog.dismiss());
 
@@ -104,7 +155,8 @@ public class HomeActivity extends AppCompatActivity {
             String mTask = task.getText().toString().trim();
             String mDesc = desc.getText().toString().trim();
             String id = reference.push().getKey();
-            String date = DateFormat.getDateInstance().format(new Date());
+            String mDate = date.getText().toString().trim();
+            String mTime = time.getText().toString().trim();
 
             if(TextUtils.isEmpty(mTask)){
                 task.setError("Task Required");
@@ -119,7 +171,7 @@ public class HomeActivity extends AppCompatActivity {
             loader.setCanceledOnTouchOutside(false);
             loader.show();
 
-            TasksModel model = new TasksModel(mTask, mDesc, id, date);
+            TasksModel model = new TasksModel(mTask, mDesc, id, mDate,mTime);
             reference.child(id).setValue(model).addOnCompleteListener(task1 -> {
                 if(task1.isSuccessful()) {
                     Toast.makeText(HomeActivity.this, "Your task has been added successfully", Toast.LENGTH_SHORT).show();
@@ -136,7 +188,12 @@ public class HomeActivity extends AppCompatActivity {
 
         dialog.show();
     }
+    private void updateLabel() {
+        String myFormat = "MM/dd/yy"; //In which you need put here
+        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
 
+        date.setText(sdf.format(myCalendar.getTime()));
+    }
     @Override
     protected void onStart() {
         super.onStart();
@@ -205,7 +262,7 @@ public class HomeActivity extends AppCompatActivity {
 
             String date = DateFormat.getDateInstance().format(new Date());
 
-            TasksModel model = new TasksModel(task, description, key, date);
+            TasksModel model = new TasksModel(task, description, key, date,null);
             reference.child(key).setValue(model).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
