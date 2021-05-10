@@ -1,7 +1,10 @@
 package com.Quintet.myremindme;
 
+import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -16,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -33,8 +37,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.text.DateFormat;
-import java.util.Date;
+import java.util.Calendar;
 
 
 public class HomeActivity extends AppCompatActivity {
@@ -52,8 +55,21 @@ public class HomeActivity extends AppCompatActivity {
     private ProgressDialog loader;
 
     private String key = "";
+    private String id;
     private String task;
     private String description;
+    private String date;
+    private String time;
+
+    private EditText addTask;
+    private EditText addDesc;
+    private EditText addDate;
+    private EditText addTime;
+
+    private EditText uTask;
+    private EditText uDesc;
+    private EditText uDate;
+    private EditText uTime;
 
     private static final String TAG = "HomeActivity";
 
@@ -82,59 +98,12 @@ public class HomeActivity extends AppCompatActivity {
         reference = database.getReference().child("tasks").child(userID);
 
         floatingActionButton = findViewById(R.id.fab);
-        floatingActionButton.setOnClickListener(view -> addTask());
-    }
-
-    private void addTask() {
-        AlertDialog.Builder myDialog = new AlertDialog.Builder(this);
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View v = inflater.inflate(R.layout.add_task,null);
-        myDialog.setView(v);
-        AlertDialog dialog = myDialog.create();
-        dialog.setCancelable(false);
-
-        final EditText task = v.findViewById(R.id.task);
-        final EditText desc = v.findViewById(R.id.description);
-        Button save = v.findViewById(R.id.addSaveBtn);
-        Button cancel = v.findViewById(R.id.addCancelBtn);
-
-        cancel.setOnClickListener((view) -> dialog.dismiss());
-
-        save.setOnClickListener(view -> {
-            String mTask = task.getText().toString().trim();
-            String mDesc = desc.getText().toString().trim();
-            String id = reference.push().getKey();
-            String date = DateFormat.getDateInstance().format(new Date());
-
-            if(TextUtils.isEmpty(mTask)){
-                task.setError("Task Required");
-                return;
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addTask();
             }
-            if(TextUtils.isEmpty(mDesc)){
-                desc.setError("Description Required");
-                return;
-            }
-
-            loader.setMessage("Saving your task");
-            loader.setCanceledOnTouchOutside(false);
-            loader.show();
-
-            TasksModel model = new TasksModel(mTask, mDesc, id, date);
-            reference.child(id).setValue(model).addOnCompleteListener(task1 -> {
-                if(task1.isSuccessful()) {
-                    Toast.makeText(HomeActivity.this, "Your task has been added successfully", Toast.LENGTH_SHORT).show();
-                    loader.dismiss();
-                }else{
-                    String error = task1.getException().toString();
-                    Toast.makeText(HomeActivity.this, "Failed: " + error, Toast.LENGTH_SHORT).show();
-                    loader.dismiss();
-                }
-            });
-
-            dialog.dismiss();
         });
-
-        dialog.show();
     }
 
     @Override
@@ -155,12 +124,16 @@ public class HomeActivity extends AppCompatActivity {
                 holder.setDate(model.getDate());
                 holder.setTask(model.getTask());
                 holder.setDesc(model.getDescription());
+                holder.setTime(model.getTime());
+
                 Log.i("Adapter", "onbindviewholder");
 
                 holder.view.setOnClickListener(v -> {
                     key = getRef(position).getKey();
                     task = model.getTask();
                     description = model.getDescription();
+                    date = model.getDate();
+                    time = model.getTime();
 
                     updateTask();
                 });
@@ -179,6 +152,106 @@ public class HomeActivity extends AppCompatActivity {
         adapter.startListening();
     }
 
+    public static class MyViewHolder extends RecyclerView.ViewHolder{
+        View view;
+
+        public MyViewHolder(@NonNull View itemView) {
+            super(itemView);
+            view = itemView;
+        }
+
+        public void setTask(String task){
+            TextView viewTask = view.findViewById(R.id.viewTask);
+            viewTask.setText(task);
+        }
+
+        public void setDesc(String desc){
+            TextView viewDesc = view.findViewById(R.id.viewDesc);
+            viewDesc.setText(desc);
+        }
+
+        public void setDate(String date){
+            TextView viewDate = view.findViewById(R.id.viewDate);
+            viewDate.setText(date);
+        }
+
+        public void setTime(String time){
+            TextView viewTime = view.findViewById(R.id.viewTime);
+            viewTime.setText(time);
+        }
+    }
+
+    private void addTask() {
+        AlertDialog.Builder myDialog = new AlertDialog.Builder(this);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View v = inflater.inflate(R.layout.add_task,null);
+        myDialog.setView(v);
+        AlertDialog dialog = myDialog.create();
+        dialog.setCancelable(false);
+
+        addTask = v.findViewById(R.id.addTask);
+        addDesc = v.findViewById(R.id.addDesc);
+        addDate = v.findViewById(R.id.addDate);
+        addTime = v.findViewById(R.id.addTime);
+
+        Button save = v.findViewById(R.id.addSaveBtn);
+        Button cancel = v.findViewById(R.id.addCancelBtn);
+
+        addDate.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public void onClick(View v) {
+                setDate(addDate);
+            }
+        });
+
+        addTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setTime(addTime);
+            }
+        });
+
+        cancel.setOnClickListener((view) -> dialog.dismiss());
+
+        save.setOnClickListener(view -> {
+            task = addTask.getText().toString().trim();
+            description = addDesc.getText().toString().trim();
+            id = reference.push().getKey();
+            date = addDate.getText().toString();
+            time = addTime.getText().toString();
+
+            if(TextUtils.isEmpty(task)){
+                addTask.setError("Task Required");
+                return;
+            }
+            if(TextUtils.isEmpty(description)){
+                addDesc.setError("Description Required");
+                return;
+            }
+
+            loader.setMessage("Saving your task");
+            loader.setCanceledOnTouchOutside(false);
+            loader.show();
+
+            TasksModel model = new TasksModel(task, description, id, date,time);
+            reference.child(id).setValue(model).addOnCompleteListener(task1 -> {
+                if(task1.isSuccessful()) {
+                    Toast.makeText(HomeActivity.this, "Your task has been added successfully", Toast.LENGTH_SHORT).show();
+                    loader.dismiss();
+                }else{
+                    String error = task1.getException().toString();
+                    Toast.makeText(HomeActivity.this, "Failed: " + error, Toast.LENGTH_SHORT).show();
+                    loader.dismiss();
+                }
+            });
+
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
     private void updateTask() {
         AlertDialog.Builder myDialog = new AlertDialog.Builder(this);
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -187,8 +260,8 @@ public class HomeActivity extends AppCompatActivity {
 
         AlertDialog dialog = myDialog.create();
 
-        EditText uTask = v.findViewById(R.id.updateTask);
-        EditText uDesc = v.findViewById(R.id.updateDescription);
+        uTask = v.findViewById(R.id.updateTask);
+        uDesc = v.findViewById(R.id.updateDesc);
 
         uTask.setText(task);
         uTask.setSelection(task.length());
@@ -196,16 +269,35 @@ public class HomeActivity extends AppCompatActivity {
         uDesc.setText(description);
         uDesc.setSelection(description.length());
 
-        Button delBtn = v.findViewById(R.id.deleteBtn);
+        Button delBtn = v.findViewById(R.id.updateDeleteBtn);
         Button updBtn = v.findViewById(R.id.updateBtn);
+
+        uDate = v.findViewById(R.id.updateDate);
+        uDate.setText(date);
+        uTime = v.findViewById(R.id.updateTime);
+        uTime.setText(time);
+
+        uDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setDate(uDate);
+            }
+        });
+
+        uTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setTime(uTime);
+            }
+        });
 
         updBtn.setOnClickListener(view -> {
             task = uTask.getText().toString().trim();
             description = uDesc.getText().toString().trim();
+            date = uDate.getText().toString().trim();
+            time = uTime.getText().toString().trim();
 
-            String date = DateFormat.getDateInstance().format(new Date());
-
-            TasksModel model = new TasksModel(task, description, key, date);
+            TasksModel model = new TasksModel(task, description, key, date,time);
             reference.child(key).setValue(model).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
@@ -237,27 +329,42 @@ public class HomeActivity extends AppCompatActivity {
 
     }
 
-    public static class MyViewHolder extends RecyclerView.ViewHolder{
-        View view;
-
-        public MyViewHolder(@NonNull View itemView) {
-            super(itemView);
-            view = itemView;
+    private void setDate(EditText v){
+        Calendar mcurrentDate = Calendar.getInstance();
+        int mYear = mcurrentDate.get(Calendar.YEAR);
+        int mMonth = mcurrentDate.get(Calendar.MONTH);
+        int mDayOfMonth = mcurrentDate.get(Calendar.DAY_OF_MONTH);
+        if(v==uDate){
+            String[] val = uDate.getText().toString().split("/");
+            mDayOfMonth = Integer.parseInt(val[0]);
+            mMonth = Integer.parseInt(val[1]);
+            mYear = Integer.parseInt(val[2]);
         }
+        DatePickerDialog mDatePicker;
+        mDatePicker = new DatePickerDialog(HomeActivity.this, (datePicker, year, month, dayOfMonth) -> {
+            mcurrentDate.set(Calendar.YEAR, year);
+            mcurrentDate.set(Calendar.MONTH, month);
+            mcurrentDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            v.setText( new StringBuilder().append(dayOfMonth).append("/")
+                    .append(month+1).append("/").append(year));
+        }, mYear, mMonth, mDayOfMonth);
+        mDatePicker.show();
+    }
 
-        public void setTask(String task){
-            TextView viewTask = view.findViewById(R.id.viewTask);
-            viewTask.setText(task);
+    private void setTime(EditText v){
+        Calendar mcurrentTime = Calendar.getInstance();
+        int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+        int minute = mcurrentTime.get(Calendar.MINUTE);
+        if(v==uTime){
+            String[] val = uTime.getText().toString().split(":");
+            hour = Integer.parseInt(val[0]);
+            minute = Integer.parseInt(val[1]);
         }
-
-        public void setDesc(String desc){
-            TextView viewDesc = view.findViewById(R.id.viewDescription);
-            viewDesc.setText(desc);
-        }
-
-        public void setDate(String date){
-            TextView viewData = view.findViewById(R.id.viewDate);
-        }
+        TimePickerDialog mTimePicker;
+        mTimePicker = new TimePickerDialog(HomeActivity.this, (timePicker, selectedHour, selectedMinute)
+                -> v.setText( selectedHour + ":" + selectedMinute), hour, minute, true);//Yes 24 hour time
+        mTimePicker.setTitle("Select Time");
+        mTimePicker.show();
     }
 
     @Override

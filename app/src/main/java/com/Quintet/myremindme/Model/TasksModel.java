@@ -2,16 +2,17 @@ package com.Quintet.myremindme.Model;
 
 public class TasksModel {
 
-    private String task, description, id, date;
+    private String task, description, id, date,time;
 
     public TasksModel() {
     }
 
-    public TasksModel(String task, String description, String id, String date) {
+    public TasksModel(String task, String description, String id, String date,String time) {
         this.task = task;
         this.description = description;
         this.id = id;
         this.date = date;
+        this.time = time;
     }
 
     public String getTask() {
@@ -44,5 +45,13 @@ public class TasksModel {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 }
