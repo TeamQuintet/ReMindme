@@ -2,8 +2,6 @@ package com.Quintet.myremindme;
 
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
@@ -106,8 +104,6 @@ public class HomeActivity extends AppCompatActivity {
         userID = user.getUid();
         database = FirebaseDatabase.getInstance();
         reference = database.getReference().child("tasks").child(userID);
-
-        createNotificationChannel();
 
         floatingActionButton = findViewById(R.id.fab);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
@@ -268,21 +264,6 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         dialog.show();
-    }
-
-    private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            CharSequence name = "remindmeChannel";
-            NotificationChannel channel = new NotificationChannel("remindme", name, importance);
-            channel.setDescription("Channel Description");
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
     }
 
     private void setAlarm(long time){
