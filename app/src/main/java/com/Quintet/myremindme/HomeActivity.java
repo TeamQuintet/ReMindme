@@ -1,8 +1,11 @@
 package com.Quintet.myremindme;
 
+import android.app.AlarmManager;
 import android.app.DatePickerDialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -37,6 +40,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 
 
@@ -71,6 +77,8 @@ public class HomeActivity extends AppCompatActivity {
     private EditText uDate;
     private EditText uTime;
 
+    public static int alarmNo = 0;
+
     private static final String TAG = "HomeActivity";
 
     @Override
@@ -99,6 +107,7 @@ public class HomeActivity extends AppCompatActivity {
 
         floatingActionButton = findViewById(R.id.fab);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
                 addTask();
@@ -181,6 +190,7 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void addTask() {
         AlertDialog.Builder myDialog = new AlertDialog.Builder(this);
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -239,6 +249,10 @@ public class HomeActivity extends AppCompatActivity {
                 if(task1.isSuccessful()) {
                     Toast.makeText(HomeActivity.this, "Your task has been added successfully", Toast.LENGTH_SHORT).show();
                     loader.dismiss();
+
+                    long millis = LocalDateTime.parse(date+" "+time, DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                            .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                    setAlarm(millis);
                 }else{
                     String error = task1.getException().toString();
                     Toast.makeText(HomeActivity.this, "Failed: " + error, Toast.LENGTH_SHORT).show();
@@ -250,6 +264,15 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         dialog.show();
+    }
+
+    private void setAlarm(long time){
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE); // getting the alarm manager
+        Intent intent = new Intent(this, AlarmReceiver.class); // creating a new intent specifying broadcast reveiver
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, alarmNo++, intent, 0); // creating a pending intent
+
+        alarmManager.set(AlarmManager.RTC_WAKEUP, time, pendingIntent);
+        Toast.makeText(this, "Alarm is set", Toast.LENGTH_SHORT).show();
     }
 
     private void updateTask() {
@@ -299,11 +322,16 @@ public class HomeActivity extends AppCompatActivity {
 
             TasksModel model = new TasksModel(task, description, key, date,time);
             reference.child(key).setValue(model).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @RequiresApi(api = Build.VERSION_CODES.O)
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
 
                     if(task.isSuccessful()){
                         Toast.makeText(HomeActivity.this, "Task updated", Toast.LENGTH_SHORT).show();
+
+                        long millis = LocalDateTime.parse(date+" "+time, DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                        setAlarm(millis);
                     }else{
                         String err = task.getException().toString();
                         Toast.makeText(HomeActivity.this, "Update failed: "+err, Toast.LENGTH_SHORT).show();
@@ -337,17 +365,17 @@ public class HomeActivity extends AppCompatActivity {
         if(v==uDate){
             String[] val = uDate.getText().toString().split("/");
             mDayOfMonth = Integer.parseInt(val[0]);
-            mMonth = Integer.parseInt(val[1]);
+            mMonth = Integer.parseInt(val[1])-1;
             mYear = Integer.parseInt(val[2]);
         }
         DatePickerDialog mDatePicker;
         mDatePicker = new DatePickerDialog(HomeActivity.this, (datePicker, year, month, dayOfMonth) -> {
-            mcurrentDate.set(Calendar.YEAR, year);
-            mcurrentDate.set(Calendar.MONTH, month);
-            mcurrentDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            v.setText( new StringBuilder().append(dayOfMonth).append("/")
-                    .append(month+1).append("/").append(year));
+//            mcurrentDate.set(Calendar.YEAR, year);
+//            mcurrentDate.set(Calendar.MONTH, month);
+//            mcurrentDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            v.setText(String.format("%02d/%02d/%04d",dayOfMonth,month+1,year));
         }, mYear, mMonth, mDayOfMonth);
+        mDatePicker.setTitle("Select Date");
         mDatePicker.show();
     }
 
@@ -362,7 +390,7 @@ public class HomeActivity extends AppCompatActivity {
         }
         TimePickerDialog mTimePicker;
         mTimePicker = new TimePickerDialog(HomeActivity.this, (timePicker, selectedHour, selectedMinute)
-                -> v.setText( selectedHour + ":" + selectedMinute), hour, minute, true);//Yes 24 hour time
+                -> v.setText(String.format("%02d:%02d", selectedHour, selectedMinute)), hour, minute, true);//Yes 24 hour time
         mTimePicker.setTitle("Select Time");
         mTimePicker.show();
     }
