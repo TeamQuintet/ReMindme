@@ -9,24 +9,16 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 public class AlarmReceiver extends BroadcastReceiver {
     MediaPlayer mediaPlayer;
-    public static final String channelID = "channelID";
-    public static final String channelName = "Channel Name";
-//    Context context;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onReceive(Context context, Intent intent) {
-//        this.context = context;
-        NotificationCompat.Builder nb = new NotificationCompat.Builder(context,"remindme")
-                .setContentTitle("Alarm!")
-                .setContentText("Your AlarmManager is working.")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.notify(139, nb.build());
+        NotificationHelper notificationHelper = new NotificationHelper(context);
+        NotificationCompat.Builder nb = notificationHelper.getChannelNotification();
+        notificationHelper.getManager().notify(1, nb.build());
 
         mediaPlayer = MediaPlayer.create(context, R.raw.alarm);
         mediaPlayer.start();
