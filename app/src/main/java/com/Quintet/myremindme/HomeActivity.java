@@ -2,8 +2,6 @@ package com.Quintet.myremindme;
 
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
@@ -46,6 +44,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.HashMap;
 
 
 public class HomeActivity extends AppCompatActivity {
@@ -54,7 +53,7 @@ public class HomeActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FloatingActionButton floatingActionButton;
 
-    private DatabaseReference reference;
+    public static DatabaseReference reference;
     private FirebaseDatabase database;
     private FirebaseAuth auth;
     private FirebaseUser user;
@@ -64,10 +63,11 @@ public class HomeActivity extends AppCompatActivity {
 
     private String key = "";
     private String id;
-    private String task;
-    private String description;
+    public static String task;
+    public static String description;
     private String date;
     private String time;
+    public static TasksModel model;
 
     private EditText addTask;
     private EditText addDesc;
@@ -79,7 +79,9 @@ public class HomeActivity extends AppCompatActivity {
     private EditText uDate;
     private EditText uTime;
 
-    public static int alarmNo = 0;
+    public static int pendingIntentNo = 0;
+
+    public static HashMap<String, String> list;
 
     private static final String TAG = "HomeActivity";
 
@@ -107,6 +109,7 @@ public class HomeActivity extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         reference = database.getReference().child("tasks").child(userID);
 
+        list = new HashMap<>();
         floatingActionButton = findViewById(R.id.fab);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.O)
@@ -163,6 +166,9 @@ public class HomeActivity extends AppCompatActivity {
         adapter.startListening();
     }
 
+    public static void sortTasks(){
+//        onStart();
+    }
     public static class MyViewHolder extends RecyclerView.ViewHolder{
         View view;
 
@@ -246,15 +252,16 @@ public class HomeActivity extends AppCompatActivity {
             loader.setCanceledOnTouchOutside(false);
             loader.show();
 
-            TasksModel model = new TasksModel(task, description, id, date,time);
+            model = new TasksModel(task, description, id, date,time);
             reference.child(id).setValue(model).addOnCompleteListener(task1 -> {
                 if(task1.isSuccessful()) {
                     Toast.makeText(HomeActivity.this, "Your task has been added successfully", Toast.LENGTH_SHORT).show();
                     loader.dismiss();
 
+                    list.put(id,task);
                     long millis = LocalDateTime.parse(date+" "+time, DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                             .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-                    setAlarm(millis);
+                    setAlarm(millis, id);
                 }else{
                     String error = task1.getException().toString();
                     Toast.makeText(HomeActivity.this, "Failed: " + error, Toast.LENGTH_SHORT).show();
@@ -268,12 +275,13 @@ public class HomeActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void setAlarm(long time){
+    private void setAlarm(long dueTime, String id){
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE); // getting the alarm manager
         Intent intent = new Intent(this, AlarmReceiver.class); // creating a new intent specifying broadcast reveiver
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, alarmNo++, intent, 0); // creating a pending intent
+        intent.putExtra("data", id);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, pendingIntentNo++, intent, 0); // creating a pending intent
 
-        alarmManager.set(AlarmManager.RTC_WAKEUP, time, pendingIntent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, dueTime, pendingIntent);
         Toast.makeText(this, "Alarm is set", Toast.LENGTH_SHORT).show();
     }
 
@@ -322,20 +330,21 @@ public class HomeActivity extends AppCompatActivity {
             date = uDate.getText().toString().trim();
             time = uTime.getText().toString().trim();
 
-            TasksModel model = new TasksModel(task, description, key, date,time);
+            model = new TasksModel(task, description, key, date,time);
             reference.child(key).setValue(model).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @RequiresApi(api = Build.VERSION_CODES.O)
                 @Override
-                public void onComplete(@NonNull Task<Void> task) {
+                public void onComplete(@NonNull Task<Void> task1) {
 
-                    if(task.isSuccessful()){
+                    if(task1.isSuccessful()){
                         Toast.makeText(HomeActivity.this, "Task updated", Toast.LENGTH_SHORT).show();
 
+                        list.put(key,task);
                         long millis = LocalDateTime.parse(date+" "+time, DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                                 .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-                        setAlarm(millis);
+                        setAlarm(millis, key);
                     }else{
-                        String err = task.getException().toString();
+                        String err = task1.getException().toString();
                         Toast.makeText(HomeActivity.this, "Update failed: "+err, Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -409,7 +418,7 @@ public class HomeActivity extends AppCompatActivity {
             case R.id.logout:
                 auth.signOut();
                 Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
         }

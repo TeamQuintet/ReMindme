@@ -10,15 +10,15 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
-public class AlarmReceiver extends BroadcastReceiver {
+public class AlarmReceiver extends BroadcastReceiver{
     MediaPlayer mediaPlayer;
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onReceive(Context context, Intent intent) {
-        NotificationHelper notificationHelper = new NotificationHelper(context);
+        String data = intent.getStringExtra("data");
+        NotificationHelper notificationHelper = new NotificationHelper(context,data);
         NotificationCompat.Builder nb = notificationHelper.getChannelNotification();
-        notificationHelper.getManager().notify(1, nb.build());
+        notificationHelper.getManager().notify(HomeActivity.pendingIntentNo, nb.build());
 
         mediaPlayer = MediaPlayer.create(context, R.raw.alarm);
         mediaPlayer.start();
